@@ -31,7 +31,7 @@ def evaluate():
     vec_env = DummyVecEnv([lambda: env])
     
     # 3. Load Model
-    model_name = "model_3pair_1h_final"
+    model_name = "model_3pair_1h_sniper"
     try:
         model = SAC.load(model_name)
         print(f"Loaded Model: {model_name}")
@@ -45,9 +45,24 @@ def evaluate():
     done = False
     equity_curve = [env.initial_balance]
     
+    total_trades = 0
+    prev_positions = np.zeros(len(pairs))
+    
     while not done:
         action, _ = model.predict(obs, deterministic=True)
         obs, reward, done, info = vec_env.step(action)
+        
+        # Trade Counting Logic
+        current_positions = env.positions
+        for i in range(len(pairs)):
+            # Entry: 0 to non-zero
+            if abs(current_positions[i]) > 0.1 and abs(prev_positions[i]) < 0.001:
+                total_trades += 1
+            # Flip: Sign change
+            elif abs(current_positions[i]) > 0.1 and abs(prev_positions[i]) > 0.1 and np.sign(current_positions[i]) != np.sign(prev_positions[i]):
+                total_trades += 2 # Close + Open
+        
+        prev_positions = current_positions.copy()
         
         # Extract equity from info (vectorized env returns list of infos)
         current_equity = info[0]['equity']
@@ -79,6 +94,7 @@ def evaluate():
     print(f"FINAL RESULT: ${equity_curve[-1]:.2f}")
     print(f"Total Return: {total_return:.2f}%")
     print(f"Win Rate:     {win_rate:.2f}%")
+    print(f"Total Trades: {total_trades}")
     print(f"Sharpe Ratio: {sharpe:.2f}")
     print(f"Max Drawdown: {max_drawdown:.2f}%")
     print("="*30 + "\n")

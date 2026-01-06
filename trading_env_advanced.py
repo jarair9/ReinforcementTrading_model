@@ -250,8 +250,13 @@ class AdversarialTradingEnv(gym.Env):
         for i, p in enumerate(self.pairs):
             current_price = self.price_arrays[p][self.current_step]
             
-            # Action for this pair
-            target_pct = np.clip(actions[i], -1.0, 1.0)
+            # Action for this pair with Sniper Neutral Zone
+            raw_action = actions[i]
+            if abs(raw_action) < 0.15:
+                target_pct = 0.0
+            else:
+                target_pct = np.clip(raw_action, -1.0, 1.0)
+                
             current_pct = self.positions[i]
             delta = target_pct - current_pct
             
@@ -323,11 +328,16 @@ class AdversarialTradingEnv(gym.Env):
         # Apply Market Return + Transaction Costs
         self.equity = self.equity * (1.0 + step_pnl_sum + total_cost_pnl)
         
-        # Reward
+        # Reward (Sniper Mode Scaling)
         step_ret = (self.equity - prev_equity) / prev_equity
         reward = step_ret * 100.0
+        
         if step_ret < 0:
-            reward *= 1.5 # Stricter penalty
+            reward *= 3.5 # Aggressive penalty for accuracy focus
+            
+        # Holding friction (discourages staying in non-moving trades)
+        holding_count = np.sum(np.abs(self.positions) > 0.001)
+        reward -= (holding_count * 0.002) 
             
         # Error Handling: NaN/Inf Protection
         if not np.isfinite(reward):

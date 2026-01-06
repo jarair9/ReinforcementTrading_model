@@ -65,19 +65,21 @@ def main():
         net_arch=[1024, 1024, 512, 512]
     )
     
-    # Initialize SAC Model
+    # Initialize SAC Model for "Sniper Mode"
+    # ent_coef=0.01 forces the agent to exploit known high-win patterns rather than explore
     model = SAC("MlpPolicy", vec_env, verbose=1, 
                 device=device,
-                tensorboard_log="./tensorboard_log_3pair_1h/",
+                tensorboard_log="./tensorboard_log_sniper/",
                 learning_rate=0.0001, 
-                buffer_size=100000, 
+                buffer_size=200000, 
                 batch_size=512,
+                ent_coef=0.01,
                 policy_kwargs=policy_kwargs)
     
-    print("Starting Training (100,000 Steps)...")
-    model.learn(total_timesteps=100000, callback=ProgressBarCallback())
+    print("Starting 'Sniper Mode' Training (150,000 Steps)...")
+    model.learn(total_timesteps=150000, callback=ProgressBarCallback())
     
-    model_path = "model_3pair_1h_final"
+    model_path = "model_3pair_1h_sniper"
     model.save(model_path)
     print(f"\nTraining Complete. Model saved to '{model_path}.zip'")
     print("Done.")
