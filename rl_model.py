@@ -11,6 +11,8 @@ import gymnasium as gym
 import gym  # Keep for backward compatibility
 
 
+import sys
+
 class TrainingProgressCallback:
     """Custom callback to track and display training progress"""
     def __init__(self, total_timesteps):
@@ -34,8 +36,10 @@ class TrainingProgressCallback:
                 filled_length = int(bar_length * progress_percent // 100)
                 bar = '█' * filled_length + '-' * (bar_length - filled_length)
                 
-                # Print progress bar on a new line
-                print(f"\n[{bar}] {progress_percent:.1f}% ({current_timestep:,}/{self.total_timesteps:,})")
+                # Print progress bar on same line to update in place
+                progress_line = f"[{bar}] {progress_percent:.1f}% ({current_timestep:,}/{self.total_timesteps:,})"
+                sys.stdout.write(f"\r{progress_line}")
+                sys.stdout.flush()
                 
                 self.last_print_time = current_time
                 
@@ -86,8 +90,10 @@ def train():
     print("Training Progress:")
     model.learn(total_timesteps=200000, callback=progress_callback)
     
-    # Print completion message
-    print(f"\nTraining completed! 100.0% (200,000/200,000)")
+    # Clear the progress line and print completion
+    sys.stdout.write('\r' + ' ' * 80 + '\r')  # Clear the progress line
+    sys.stdout.flush()
+    print(f"Training completed! 100.0% (200,000/200,000)")
     
     model_name = "models/ppo_trading_enhanced_v2"
     model.save(model_name)
