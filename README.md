@@ -9,6 +9,12 @@ An advanced multi-asset trading agent powered by Reinforcement Learning (SAC) an
 - **Adversarial Environment**: Features an `AdversarialTradingEnv` that simulates real-world slippage and spread widening to stress-test strategies.
 - **Interactive Visualization**: Built-in Plotly-based visualizer to see exactly where the model buys and sells on a TradingView-style chart.
 - **GPU Accelerated**: Automatically detects and utilizes CUDA for deep learning training.
+- **Multi-Timeframe Context**: Incorporates 1H and 4H trend indicators and RSI for "Big Picture" context.
+- **Market Regime Detection**: ADX-based regime detection to identify trending vs. ranging markets.
+- **Advanced Reward Functions**: Sortino ratio component for optimizing smooth equity curves.
+- **Sequence-Aware Architecture**: LSTM-based policy for memory and pattern recognition over time.
+- **Automated Hyperparameter Tuning**: Optuna-based optimization for finding optimal parameters.
+- **Multi-Asset Integration**: Support for correlated assets like DXY or GBPUSD for confirmation signals.
 
 ## 🛠️ Tech Stack
 
@@ -18,32 +24,67 @@ An advanced multi-asset trading agent powered by Reinforcement Learning (SAC) an
 - **Data Engineering**: Pandas, NumPy
 - **Graphics**: Plotly (Interactive Dashboards)
 
-## 📦 Installation
+# 🚀 EURUSD RL Trading Project (Refined Kindergarten Phase)
 
-1. **Clone the repository**:
+A simplified, robust reinforcement learning trading system for EURUSD 15m data, focusing on zero data leakage and extreme risk management.
+
+## 📁 Project Structure
+
+- **`data/`**: Raw and cleaned datasets.
+- **`models/`**: Saved training checkpoints (.zip).
+- **`logs/`**: Tensorboard logs for monitoring training performance.
+- **`src/`**: Core logic and scripts.
+  - `data_fetcher.py`: Downloads high-quality historical data from GitHub.
+  - `data_cleaner.py`: Processes and encodes 9 non-leaking features (6 original + 3 HTF).
+  - `data_diagnostics.py`: Checks for target/feature leakage.
+  - `trading_env.py`: Gym-compatible trading environment with risk circuit breakers.
+  - `multi_asset_env.py`: Multi-asset trading environment with correlated asset features.
+  - `supervised_model.py`: Random Forest / XGBoost baseline (Target: >52% accuracy).
+  - `rl_model.py`: PPO trainer with LSTM policy and enhanced features.
+  - `benchmarks.py`: Standard trading benchmarks (SMA Crossover, B&H).
+  - `analysis.py`: Predictability heatmaps and win/loss statistics.
+- **`hyperparameter_tuning.py`**: Optuna-based automated hyperparameter optimization.
+- **`run_improved_system.py`**: Script to run the complete improved system.
+
+## 🛠️ Execution Sequence
+
+1. **Setup**:
    ```bash
-   git clone https://github.com/jarair9/ReinforcementTrading_model.git
-   cd ReinforcementTrading_model
+   pip install -r Requirements.txt
    ```
 
-2. **Install dependencies**:
+2. **Data Acquisition**:
    ```bash
-   pip install -r requirements.txt
+   python src/data_fetcher.py
+   python src/data_cleaner.py
    ```
 
-## 📈 Usage Workflow
+3. **Validation**:
+   ```bash
+   python src/data_diagnostics.py
+   python src/supervised_model.py
+   ```
 
-### 1. Training the Model
-Run the main training script. It will load 1H data for EURUSD, GBPUSD, and XAUUSD, initialize the deep ResNet policy, and start the SAC learning process.
-```bash
-python train_agent.py
-```
+4. **Training**:
+   ```bash
+   python src/rl_model.py
+   # Or run the complete improved system:
+   python run_improved_system.py
+   ```
 
-### 2. Monitoring Progress
-You can monitor the training progress in real-time using Tensorboard:
-```bash
-tensorboard --logdir ./tensorboard_log_3pair_1h/
-```
+5. **Hyperparameter Tuning** (Optional):
+   ```bash
+   python hyperparameter_tuning.py
+   ```
+
+6. **Analysis**:
+   ```bash
+   tensorboard --logdir logs/
+   python src/analysis.py
+   ```
+
+---
+**Note**: This project uses a strictly non-leaking feature engineering system to ensure real predictive power.
 
 ### 3. Interactive Analysis (TradingView Style)
 After training, generate a visual report for a specific pair to see the model's performance:
@@ -65,6 +106,8 @@ The model's observation space includes:
 - **Technical Indicators**: RSI, MACD, Bollinger Bands, and ATR.
 - **Cross-Pair Correlations**: Rolling correlation features between assets.
 - **Cyclic Time Features**: Sine/Cosine encoding for Hour and Day.
+- **Higher Timeframe Features**: 1H and 4H trend indicators and RSI.
+- **Market Regime Features**: ADX-based regime detection (trending vs. ranging).
 
 ## ⚠️ Disclaimer
 This project is for educational purposes only. Reinforcement learning in financial markets is highly experimental. Trading involves significant risk of loss.
