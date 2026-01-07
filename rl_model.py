@@ -46,17 +46,14 @@ class TrainingProgressCallback:
                     else:
                         return f"{seconds/3600:.1f}h"
                 
-                print(f"\rProgress: {progress_percent:.1f}% ({current_timestep:,}/{self.total_timesteps:,} steps) | "
+                # Print progress on a new line below training logs
+                print(f"\nProgress: {progress_percent:.1f}% ({current_timestep:,}/{self.total_timesteps:,} steps) | "
                       f"Elapsed: {format_time(elapsed_time)} | "
                       f"Remaining: {format_time(remaining_time)} | "
-                      f"Speed: {current_timestep/elapsed_time:.0f} steps/sec", end="", flush=True)
+                      f"Speed: {current_timestep/elapsed_time:.0f} steps/sec")
                 
                 self.last_print_time = current_time
                 
-                # Print newline at completion
-                if current_timestep >= self.total_timesteps:
-                    print()  # New line at the end
-        
         return True  # Continue training
 
 def train():
@@ -103,6 +100,11 @@ def train():
     # Train with progress tracking
     print("Training Progress:")
     model.learn(total_timesteps=200000, callback=progress_callback)
+    
+    # Print completion message
+    final_time = time.time()
+    elapsed_time = final_time - progress_callback.start_time
+    print(f"\nTraining completed! Total time: {elapsed_time/60:.1f} minutes")
     
     model_name = "models/ppo_trading_enhanced_v2"
     model.save(model_name)
