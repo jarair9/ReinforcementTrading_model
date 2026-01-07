@@ -27,30 +27,15 @@ class TrainingProgressCallback:
             # Print progress every 10 seconds or at key milestones
             current_time = time.time()
             if current_time - self.last_print_time >= 10 or current_timestep >= self.total_timesteps:
-                elapsed_time = current_time - self.start_time
                 progress_percent = (current_timestep / self.total_timesteps) * 100
                 
-                # Estimate remaining time
-                if progress_percent > 0:
-                    estimated_total_time = elapsed_time / (progress_percent / 100)
-                    remaining_time = estimated_total_time - elapsed_time
-                else:
-                    remaining_time = 0
+                # Create a simple progress bar
+                bar_length = 50
+                filled_length = int(bar_length * progress_percent // 100)
+                bar = '█' * filled_length + '-' * (bar_length - filled_length)
                 
-                # Format time nicely
-                def format_time(seconds):
-                    if seconds < 60:
-                        return f"{seconds:.0f}s"
-                    elif seconds < 3600:
-                        return f"{seconds/60:.1f}m"
-                    else:
-                        return f"{seconds/3600:.1f}h"
-                
-                # Print progress on a new line below training logs
-                print(f"\nProgress: {progress_percent:.1f}% ({current_timestep:,}/{self.total_timesteps:,} steps) | "
-                      f"Elapsed: {format_time(elapsed_time)} | "
-                      f"Remaining: {format_time(remaining_time)} | "
-                      f"Speed: {current_timestep/elapsed_time:.0f} steps/sec")
+                # Print progress bar on a new line
+                print(f"\n[{bar}] {progress_percent:.1f}% ({current_timestep:,}/{self.total_timesteps:,})")
                 
                 self.last_print_time = current_time
                 
@@ -102,9 +87,7 @@ def train():
     model.learn(total_timesteps=200000, callback=progress_callback)
     
     # Print completion message
-    final_time = time.time()
-    elapsed_time = final_time - progress_callback.start_time
-    print(f"\nTraining completed! Total time: {elapsed_time/60:.1f} minutes")
+    print(f"\nTraining completed! 100.0% (200,000/200,000)")
     
     model_name = "models/ppo_trading_enhanced_v2"
     model.save(model_name)
