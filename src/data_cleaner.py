@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 import os
+import warnings
+
+# Suppress division by zero warnings in ADX calculation
+warnings.filterwarnings('ignore', message='invalid value encountered in divide')
 
 def clean_eurusd_data(input_path, output_path, htf_input_path=None):
     print(f"Cleaning data: {input_path}")
@@ -109,7 +113,7 @@ def clean_eurusd_data(input_path, output_path, htf_input_path=None):
     df['feat_hour_sin'] = np.sin(2 * np.pi * df.index.hour / 24)
     df['feat_hour_cos'] = np.cos(2 * np.pi * df.index.hour / 24)
     
-    # 5. Volume spike (Relative to past 20 periods)
+# 5. Volume spike (Relative to past 20 periods)
     past_avg_volume = df['Volume'].rolling(20).mean().shift(1)
     
     # Debug volume calculation
@@ -120,6 +124,13 @@ def clean_eurusd_data(input_path, output_path, htf_input_path=None):
     df['feat_vol_spike'] = np.where(past_avg_volume > 1e-10,
                                    df['Volume'] / past_avg_volume,
                                    1.0)  # Default to neutral volume
+    
+    # 5.5 Relative range normalization (for slippage cost calculation)
+    current_range = df['High'] - df['Low']
+    past_avg_range = current_range.rolling(20).mean().shift(1)
+    df['feat_rel_range_norm'] = np.where(past_avg_range > 1e-10,
+                                       current_range / past_avg_range,
+                                       1.0)  # Default to neutral range
     
     # 6. Higher Timeframe (HTF) Context
     # Use actual HTF data if available, otherwise create synthetic features
@@ -291,7 +302,7 @@ def clean_eurusd_data(input_path, output_path, htf_input_path=None):
     feature_cols = ['feat_returns_5', 'feat_price_pos', 'feat_norm_vol', 
                     'feat_hour_sin', 'feat_hour_cos', 'feat_vol_spike',
                     'htf_1h_trend', 'htf_4h_trend', 'htf_4h_rsi',
-                    'feat_regime']
+                    'feat_regime', 'feat_rel_range_norm']
     
     # Print feature statistics
     print("\n--- Feature Statistics ---")
